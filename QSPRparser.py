@@ -8,9 +8,10 @@ from openpyxl import Workbook
 import numpy as np
 
 INPUTFILE1 = 'test-orig1.xlsx'
-OUTPUTFILE1 = 'edited1-test1.xlsx'
+OUTPUTFILE1 = 'edited1_test1.xlsx'
 INPUTFILE2 = 'test-orig2.xlsx'
-OUTPUTFILE2 = 'edited1-test2.xlsx'
+OUTPUTFILE2 = 'edited1_test2.xlsx'
+COMBINEDFILE = 'edited1_combined.xlsx'
 
 
 columnTrans = ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC')
@@ -26,7 +27,9 @@ def colNumToColStr(numberOfCol):
 def indexNumToColStr(index):
 	return columnTrans[index]
 
+##############################parses raw data file and saves it#####################
 def parseFile(rawFileName, newSaveFileName):
+
 	#load the file
 	wb = load_workbook(rawFileName)
 	ws = wb.active
@@ -115,33 +118,52 @@ def parseFile(rawFileName, newSaveFileName):
 	return 1	
 
 
-###########################save the test conditions#####################
-def combineFile(file1, file2):
-	testCondsTup = ws[('B') + ':' + ('D')]
-	testConds = (np.array(list(testCondsTup))).T
+##########################combines two files####################
+def combineParsedFile(file1, file2, combinedFileName):
+	#load the file
+	wb1 = load_workbook(file1)
+	ws1 = wb1.active
+	
+	#load the file
+	wb2 = load_workbook(file2)
+	ws2 = wb2.active
+	
+	#load the test conditoins into memory for the 1st file 
+#	testCondsTup1 = ws1[('B') + ':' + ('D')]
+	testConds1 = ws1[('B') + ':' + ('D')]
+#	testConds1 = (np.array(list(testCondsTup1))).T
+	
+	#load the test conditoins into memory for the 2nd file 
+	testConds2 = ws2[('B') + ':' + ('D')]
 
+	
+	#add two new columns after the last ones to add more data
+	ws1.insert_cols( len(keyParametersTX) + 1,2)
+	
+	#loop through ws2 and ws1 and see if there's matching test conditons. if so, add them in to the left. if not, add them in a new row
+	
+	#loop through the saved data and index where there's a change in test conditions	
 	newDataIndexList = [0]
-
-	#loop through the saved data and see if there		
-	for irow in range(1, len(testConds)):
-		for icol in range(len(testConds[0])):
-			#print (testConds[irow][icol].value)
-			prevVal = testConds[irow-1][icol].value
-			if ((testConds[irow][icol].value != prevVal) & (newDataIndexList[len(newDataIndexList) - 1] != irow)):
+	for irow in range(1, len(testConds1[0])):
+		for icol in range(len(testConds1)):
+			#print (testConds1[icol][irow].value)
+			prevVal = testConds1[icol][irow-1].value
+			if ((testConds1[icol][irow].value != prevVal) & (newDataIndexList[len(newDataIndexList) - 1] != irow)):
 				newDataIndexList.append(irow)
 			
 			
 	print (newDataIndexList)
 	
-	
+	#save the file!	
+	#wb1.save(combinedFileName)	
 	
 	return 1
 	
 		
 		
 
-parseFile(INPUTFILE1, OUTPUTFILE1)
-parseFile(INPUTFILE2, OUTPUTFILE2)
+#parseFile(INPUTFILE1, OUTPUTFILE1)
+#parseFile(INPUTFILE2, OUTPUTFILE2)
 	
-	
+combineParsedFile(OUTPUTFILE1, OUTPUTFILE2, COMBINEDFILE)	
 	
