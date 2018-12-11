@@ -130,32 +130,53 @@ def combineParsedFile(file1, file2, combinedFileName):
 	
 	#load the test conditoins into memory for the 1st file 
 #	testCondsTup1 = ws1[('B') + ':' + ('D')]
-	testConds1 = ws1[('B') + ':' + ('D')]
+	testConds1 = ws1[('B') + ':' + ('E')]
 #	testConds1 = (np.array(list(testCondsTup1))).T
 	
 	#load the test conditoins into memory for the 2nd file 
-	testConds2 = ws2[('B') + ':' + ('D')]
+	testConds2 = ws2[('B') + ':' + ('E')]
 
 	
 	#add two new columns after the last ones to add more data
-	ws1.insert_cols( len(keyParametersTX) + 1,2)
+	ws1.insert_cols( len(keyParametersTX) + 2,2)
 	
-	#loop through ws2 and ws1 and see if there's matching test conditons. if so, add them in to the left. if not, add them in a new row
+	#loop through ws2 and ws1 and see if there's matching test conditons. if so, add them in to the right of existing data. if not, add them in a new row
+	for irow in range(len(testConds1[0]) - 1, 0, -1):
+		for icol in range(len(testConds1)):
+			ws1Value = testConds1[icol][irow].value
+			ws2Value = testConds2[icol][irow].value
+			#if all the test conditions including the power level match, then add in the new data to the right of the existing data
+			if (ws1Value == ws2Value) & (icol == (len(testConds1) - 1)):
+				ws1['H' + str(irow)] = ws2Value
+	
 	
 	#loop through the saved data and index where there's a change in test conditions	
+	# newDataIndexList = [0]
+	# for irow in range(1, len(testConds1[0])):
+		# for icol in range(len(testConds1)):
+			# #print (testConds1[icol][irow].value)
+			# prevVal = testConds1[icol][irow-1].value
+			# if ((testConds1[icol][irow].value != prevVal) & (newDataIndexList[len(newDataIndexList) - 1] != irow)):
+				# newDataIndexList.append(irow)
+			
+			
+	#do the above... but BACKWARDS!
+	#loop through the saved data and index where there's a change in test conditions	
 	newDataIndexList = [0]
-	for irow in range(1, len(testConds1[0])):
+	for irow in range(len(testConds1[0]) - 1, 0, -1):
 		for icol in range(len(testConds1)):
 			#print (testConds1[icol][irow].value)
 			prevVal = testConds1[icol][irow-1].value
 			if ((testConds1[icol][irow].value != prevVal) & (newDataIndexList[len(newDataIndexList) - 1] != irow)):
-				newDataIndexList.append(irow)
+				newDataIndexList.append(irow)			
 			
-			
+	newDataIndexList.append(0)		
+	newDataIndexList.pop(0)		
+	
 	print (newDataIndexList)
 	
 	#save the file!	
-	#wb1.save(combinedFileName)	
+	wb1.save(combinedFileName)	
 	
 	return 1
 	
@@ -167,3 +188,4 @@ def combineParsedFile(file1, file2, combinedFileName):
 	
 combineParsedFile(OUTPUTFILE1, OUTPUTFILE2, COMBINEDFILE)	
 	
+
